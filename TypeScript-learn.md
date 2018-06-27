@@ -375,11 +375,34 @@ let myArray: StringArray;
 myArray = ["Bob", "Fred"];
 let myStr: string = myArray[0];
 ```
-
-
-
-
-
-
-
+这个索引签名表示了当用`number`去索引时才会得到值。共用两种索引签名：字符串和数字。可以同时使用两种类型的索引，但是数字索引的返回值必须是字符串索引返回值类型的子类型。这是因为当使用`number`来说索引时，JavaScript会将它转换成`string`然后再去索引对象。
+```ts
+class Animal {
+    name: string;
+}
+class Dog extends Animal {
+    breed: string;
+}
+//错误：使用数值类型的字符串索引，有时会得到完全不同的Animal！
+interface NotOkay {
+    [x: number]: Aniaml;
+    [x: string]: Dog;
+}
+```
+字符串索引签名能够很好的描述`dictionary`模式，并且它们也会确保所有属性与其返回值类型相匹配。因为字符串索引声明了`obj.property`和`obj["property"]`两种形式都可以。下面的例子里，`name`的类型与字符串索引类型不匹配，所以类型检查给出一个错误提示：
+```ts
+interface NumberDictionary {
+    [index: string]: number;
+    length: number;  //可以，length是number类型
+    name: string;   //错误，name的类型与索引类型返回值的类型不匹配
+}
+```
+最后，你可以将索引签名设置为只读，这样就可以防止了给索引赋值：
+```ts
+interface ReadonlyStringArray {
+    readonly [index: number]: string;
+}
+let myArray: ReadonlyStringArray = ["Alice", "Bob"];
+myArray[2] = "Mallory";  //error
+```
 
