@@ -170,3 +170,76 @@ let someValue: any = "this is a string";
 let strLength: number = (someValue as string).length;
 ```
 两种形式是等价的。 至于使用哪个大多数情况下是凭个人喜好；然而，当你在TypeScript里使用JSX时，只有 as语法断言是被允许的。
+
+### `let`声明
+当用`let`声明一个变量，它使用的是词法作用域或块作用域。不同于使用`var`声明的变量那样可以在包含它们的函数外访问，块级作用域变量在包含它们的块或for循环之外是不能访问的。
+```ts
+function f(input: boolean) {
+    let a = 100;
+
+    if (input) {
+        // Still okay to reference 'a'
+        let b = a + 1;
+        return b;
+    }
+    //Error: 'b' doesn't exist here
+    return b;
+}
+```
+在`catch`语句里声明的变量也具有同样的作用域规则。
+```ts
+try {
+    throw "oh no!";
+}
+catch (e) {
+    console.log("oh well.");
+}
+
+console.log(e);
+```
+
+#### 重定义和屏蔽
+```ts
+let x = 10;
+let x = 20;//Error
+```
+
+在一个嵌套作用域里引入一个新名字的行为称做屏蔽。 它是一把双刃剑，它可能会不小心地引入新问题，同时也可能会解决一些错误。
+
+```ts
+function sumMatrix(matrix: number[][]) {
+    let sum = 0;
+    for (let i = 0; i < matrix.length; i++) {
+        var currentRow = matrix[i];
+        for (let i = 0; i < currentRow.length; i++) {
+            sum += currentRow[i];
+        }
+    }
+
+    return sum;
+}
+```
+这个版本的循环能得到正确的结果，因为内层循环的i可以屏蔽掉外层循环的i。
+
+当`let`声明出现在循环体里面时拥有完全不同的行为。不仅是在循环里引入了一个新的变量环境，而是针对每次迭代都会创建这样一个新的作用域。这就是我们咋使用立即执行的函数表达式时做的事，所以在`setTimeout`例子里我们仅使用`let`声明就可以了。
+```ts
+for (let i = 0; i < 10; i++) {
+    setTimeout(function() {console.log(i);}, 100*i);
+}
+```
+
+#### 展开
+对象展开有其它一些意想不到的限制。首先，它仅包含对象自身的可枚举属性。大体上是说当你展开一个对象实例时，你会丢失其方法：
+```ts
+class C {
+    p = 12;
+    m() {
+    }
+}
+let c = new C();
+let clone = {...c};
+clone.p;//ok
+clone.m();//error
+```
+其次，TypeScript编译器不允许展开泛型函数上的类型参数。 这个特性会在TypeScript的未来版本中考虑实现。
+
