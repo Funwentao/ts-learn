@@ -171,7 +171,7 @@ let strLength: number = (someValue as string).length;
 ```
 两种形式是等价的。 至于使用哪个大多数情况下是凭个人喜好；然而，当你在TypeScript里使用JSX时，只有 as语法断言是被允许的。
 
-### `let`声明
+### let声明
 当用`let`声明一个变量，它使用的是词法作用域或块作用域。不同于使用`var`声明的变量那样可以在包含它们的函数外访问，块级作用域变量在包含它们的块或for循环之外是不能访问的。
 ```ts
 function f(input: boolean) {
@@ -242,4 +242,144 @@ clone.p;//ok
 clone.m();//error
 ```
 其次，TypeScript编译器不允许展开泛型函数上的类型参数。 这个特性会在TypeScript的未来版本中考虑实现。
+
+### 接口
+```ts
+interface LabelledValue {
+    label: string;
+}
+
+function printLabel(labelledObj: LabelledValue) {
+    console.log(labelledObj.label);
+}
+let myObj = {size:10, label:"Size 10 Object"};
+printLabel(myObj);
+```
+LabelledValue接口好比一个名字，用来描述上面例子里的要求。他代表了有一个`label`属性且类型为`string`的对象。
+
+#### 可选属性
+接口里的属性不都是必需的。有些是只在某些条件下存在，或者根本不存在。可选属性在应用“option bags”模式时很常用，即给函数传入的参数对象中只有部分属性赋值了。
+
+```ts
+interface SquareConfig {
+    color?: string;
+    width?: number;
+}
+function createSquare(config: SquareConfig):{color: String; area: number}{
+    let newSquare = {color: "white", area: 100};
+    if (config.color) {
+        newSquare.color = config.color;
+    }
+    if (config.width) {
+        newSquare.area = config.width * config.width;
+    }
+    return newSquare;
+}
+let mySquare = createSquare({color:"balck"});
+```
+
+#### 只读属性
+一些对象属性只能在对象刚刚创建的时候修改其值。你可以在属性名前用`readonly`来指定只读属性：
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+let p1: Point = {x: 10,y: 20};
+p1.x = 5;//error!
+```
+Typescript具有ReadonlyArray<T>类型，它于Array<T>相似，只是把所有可变方法去掉了，因此可以确保数组创建后再也不能被修改：
+```ts
+let a: number[] = [1, 2, 3, 4];
+let ro: ReadonlyArray<number> = a;
+ro[0] = 12; //error
+ro.push(5); //error
+ro.length = 100; //error
+a = ro; //error
+```
+#### 额外的属性检查
+我们在第一个例子里面,Typescript让我们传入`{size: number;label: string}`到仅期望得到`{label: string}`的函数里。我们已经学过了可选属性，并且知道他们在"option bags"模式里很有用。
+
+然而，天真地将这两者结合的话就会像在JavaScript里那样搬起石头砸自己的脚。比如，拿`createSquare`例子来说：
+```ts
+interface SquareConfig {
+    color?: string;
+    width?: number;
+}
+
+function createSquare(config: SquareConfig):{color: string;area: number}{
+    //...
+}
+let mySquare =  createSquare({colour:"red",width:100});
+```
+注意传入createSquare的参数拼写为colour而不是color。在JavaScript里，这会默默的失败。
+你可能会争辩这个程序已经正确地类型化了，因为`width`属性是兼容的，不存在`color`属性，而且额外的colour属性是无意义的。
+然而，Typescript会认为这段代码可能存在bug。对象字面量会被特殊对待而且会经过额外属性检查，当将他们赋值给变量或作为参数传递的时候。如果一个对象字面量存在任何“目标类型”不包含的属性时，你会得到一个错误。
+```ts
+//error:'colour' not expected in type 'SquareConfig'
+let mySquare = createSquare({colour: 'red',width: 100});
+```
+绕开这些检查非常简单。最简便的方法是使用类型断言：
+```ts
+let mySquare = createSquare({width:100,opcity:0.5} as SquareConfig);
+```
+
+然而，最佳的方式是能够添加一个字符串索引签名，前提是你能够确定这个对象可能具有某些作为特殊用途的额外属性。如果`SquareConfig`带有上面定义的类型的`color`和`width`属性，并且还会带有任意数量的其他属性，那么我们可以这个定义它：
+```ts
+interface SquareConfig {
+    color?: string;
+    width?：number;
+    [propName: string]： any;
+}
+```
+#### 函数类型
+接口能够描述JavaScript找那个对象拥有的各种各样的外形。除了描述带有属性的普通对象外，接口也可以描述函数类型。
+为了使用接口表示函数类型，我们需要给接口定义一个调用签名。他就像是一个只有参数列表和返回值类型的函数定义。参数列表里的每个参数都需要名字和类型。
+```ts
+interface SearchFunc {
+    (source: string, subString: string): boolean;
+}
+```
+这样定义后，我们可以像使用其他接口一样使用这个函数类型的接口。下列展示了如何创建一个函数类型的变量，并将一个同类型的函数赋值给这个变量。
+```ts
+let mySearch: SearchFunc;
+mySearch = function(source: string, subString: string) {
+    let result  = source.search(subString);
+    return result > -1;
+}
+```
+对于函数类型的类型检查来说，函数的参数名不需要于接口里定义的名字相匹配。比如，我们使用下面的代码重写上面的例子：
+```ts
+let mySearch: SearchFunc;
+mySearch = function(src: string, sub: string):boolean {
+    let reasult = src.search(sub);
+    return result > -1;
+}
+```
+函数的参数会逐个进行检查，要求对应位置上的参数类型是兼容的。如果你不想指定类型，Typescript的类型系统会推断出参数类型，因为函数直接赋值给了SearchFunc类型变量。函数的返回值类型是通过其返回类型推断出来的（比例是`false`和`true`）。如果让这个函数返回数字或字符串，类型检查器会警告我们函数的返回值类型于`SearchFunc`接口中的定义不匹配。
+```ts
+let mySearch: SearchFunc;
+mySearch = function(src,sub) {
+    let result = src.search(sub);
+    return result > -1;
+}
+```
+#### 可索引的类型
+与使用接口描述函数类型差不多，我们也可以描述那些能够“通过索引得到”的类型，比如`a[10]`或`ageMap["daniel"]`。可索引类型具有一个索引签名，他描述了对象索引的类型，还有相应的索引返回值类型。让我们看一个例子：
+```ts
+interface StringArray {
+    [index: number]: string;
+}
+
+let myArray: StringArray;
+myArray = ["Bob", "Fred"];
+let myStr: string = myArray[0];
+```
+
+
+
+
+
+
+
 
