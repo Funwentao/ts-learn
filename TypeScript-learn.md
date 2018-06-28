@@ -405,4 +405,29 @@ interface ReadonlyStringArray {
 let myArray: ReadonlyStringArray = ["Alice", "Bob"];
 myArray[2] = "Mallory";  //error
 ```
+### 类类型
+#### 实现接口
+与C#或java里接口的基本作用一样，Typescript也能够用它来明确的强制一个类去符合某种契约。
+```ts
+interface ClockInterface {
+    currentTime: Date;
+}
 
+class Clock implements ClockInterface {
+    currentTime: Date;
+    constructor(h: number, m: number){}
+}
+```
+你也可以在接口中描述一个方法，在类里实现它，如同下面的setTime方法一样：
+```ts
+interface ClockInterface {
+    currentTime: Date;
+    setTime:(d: Date);
+}
+class Clock implements ClockInterface {
+    currentTime: Date;
+    setTime(d: Date) {
+        this.currentTime = d;
+    }
+    constructor
+}
