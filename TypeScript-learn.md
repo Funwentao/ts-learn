@@ -431,3 +431,19 @@ class Clock implements ClockInterface {
     }
     constructor
 }
+```
+### 泛型
+当我们需要一种方法是使回值的类型与传入的参数的类型是相同的。这里，我们使用了类型变量，他是一种特殊的变量，只用于表示类型而不是值。
+```ts
+function identity<T>(arg: T):T {
+    return arg;
+}
+```
+#### 使用泛型变量
+现在假设我们想操作T类型的数组而不直接是T。由于我们操作的是数组，所以.length属性是应该存在的。 我们可以像创建其它数组一样创建这个数组：
+```ts
+function loggingIdentity<T>(arg: T[]): T[] {
+    console.log(arg.length);  // Array has a .length, so no more error
+    return arg;
+}
+```
