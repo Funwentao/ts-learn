@@ -47,5 +47,53 @@ nothing to commit,working directory clean
 ```git
 $ git add *
 ```
+#### 暂存已修改文件
+```git 
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    new file:   README
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+    modified:   CONTRIBUTING.md
+````
+`git add`是个多功能命令：可以用它开始跟踪新文件，或者把已跟踪的文件放到暂存区，还能用于合并时把有冲突的文件标记为已解决状态等。 
+```git 
+$ git add CONTRIBUTING.md
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    new file:   README
+    modified:   CONTRIBUTING.md
+```
+#### 状态简览
+```git
+$ git status -s
+ M README              
+MM Rakefile            //出现在右边的 M 表示该文件被修改了但是还没放入暂存区，出现在靠左边的 M 表示该文件被修改了并放入了暂存区
+A  lib/git.rb          //新添加到暂存区中的文件前面有 A 标记
+M  lib/simplegit.rb
+?? LICENSE.txt         //新添加的未跟踪文件前面有 ?? 标记
+```
+#### 忽略文件
+`.gitignore`文件
+```git
+$ cat .gitignore
+*.[oa]    //忽略所有以.o或.a结尾的文件
+*~        //忽略所有以波浪符（~）结尾的文件
+```
+`.gitignore`的格式规范如下：
+* 所有空行后者以#开头的行都会被git忽略
+* 可以使用标准的glob模式匹配
+* 匹配模式可以以（/）开头防止递归
+* 匹配模式可以以（/）结尾指定目录
+* 要忽略指定模式以外的文件或目录，可以在模式前加上惊叹号（！）取反
 
 
