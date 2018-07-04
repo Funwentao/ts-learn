@@ -96,4 +96,70 @@ $ cat .gitignore
 * 匹配模式可以以（/）结尾指定目录
 * 要忽略指定模式以外的文件或目录，可以在模式前加上惊叹号（！）取反
 
+#### 跳过使用暂存区域
+git提供了一个跳过使用暂存区域的方式，只要在提交的时候，给git commit加上-a选项，git就会自动把所有已经跟踪过的文件暂存起来一并提交，从而跳过git add步骤
+```git
+$ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+    modified:   CONTRIBUTING.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+$ git commit -a -m 'added new benchmarks'
+[master 83e38c7] added new benchmarks
+ 1 file changed, 5 insertions(+), 0 deletions(-)
+ ```
+ #### 移除文件
+ 要从git中移除某个文件，就必须要从已跟踪文件清单中移除（确切地说，是从暂存区域移除），然后提价。可以用git rm命令完成此项工作，并连带从工作目录中删除指定的文件，这样以后就不会出现未跟踪文件清单中了。
+ 如果只是简单地从工作目录中手工删除文件，运行`git status`时就会在"Change not staged for commit"部分中看到：
+ ```git
+ $ rm PROJECTS.md
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+        deleted:    PROJECTS.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+````
+然后再运行 git rm 记录此次移除文件的操作：
+```git
+$ git rm PROJECTS.md
+rm 'PROJECTS.md'
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    deleted:    PROJECTS.md
+```
+下一次提交时，该文件就不再纳入版本管理了。 如果删除之前修改过并且已经放到暂存区域的话，则必须要用强制删除选项 -f（译注：即 force 的首字母）。 这是一种安全特性，用于防止误删还没有添加到快照的数据，这样的数据不能被 Git 恢复。
+
+另外一种情况是，我们想把文件从 Git 仓库中删除（亦即从暂存区域移除），但仍然希望保留在当前工作目录中。 换句话说，你想让文件保留在磁盘，但是并不想让 Git 继续跟踪。 当你忘记添加 .gitignore 文件，不小心把一个很大的日志文件或一堆 .a 这样的编译生成文件添加到暂存区时，这一做法尤其有用。 为达到这一目的，使用 --cached 选项：
+```git
+$ git rm --cached README
+```
+#### 移动文件
+对git中文件改名，可以这么做：
+```git
+$ git mv file_from file_to
+```
+### 查看提交历史
+```git
+$ git log
+$ git log -p -2    //-p用来显示每次提交的内容差异，-2仅显示最近两次提交
+$ git log --stat   //显示每次提交的简略的统计信息
+$ git log --pretty //指定使用不同于默认格式的方式展示提交历史
+```
+### 撤销操作
+
+
+
+
 
