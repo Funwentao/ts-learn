@@ -158,6 +158,27 @@ $ git log --stat   //显示每次提交的简略的统计信息
 $ git log --pretty //指定使用不同于默认格式的方式展示提交历史
 ```
 ### 撤销操作
+有时候我们提交完了才发现漏掉了几个文件没提交，或者提交信息写错了。此时，可以运行带有--amend选项的提交命令尝试重新提交：
+```git
+$ git commit --amend
+```
+这个命令会将暂存区中的文件提交。如果自上次以来你还未做任何修改，那么快照会保持不变，而你所修改的只是提交信息。
+```git
+$ git commit -m 'initial commit'
+$ git add forgotten_file
+$ git commit --amend
+```
+最终只会有一个提交，第二次提交将代替第一次提交的结果
+#### 取消暂存的文件
+```git
+$ git reset HEAD <file>
+```
+#### 撤销对文件的修改
+```git
+$ git checkout -- <file>
+```
+### 远程仓库的使用
+
 
 
 
