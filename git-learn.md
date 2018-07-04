@@ -43,4 +43,9 @@ On branch master
 nothing to commit,working directory clean
 ```
 这说明你现在的工作目录相当干净。话句话说，所有已跟踪文件在上次提交后都未被更改过。
+#### 跟踪新文件
+```git
+$ git add *
+```
+
 
