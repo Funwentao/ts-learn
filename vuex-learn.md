@@ -206,3 +206,4 @@ mutations: {
 ```js
 state.obj = {...state.obj, newProp:123}
 ```
+#### 使用常量代替mutation事件类型
