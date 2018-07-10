@@ -382,3 +382,107 @@ actions: {
 }
 ```
 一个store.dispatch在不同模块中可以触发多个action函数。在这种情况下，只有当所有触发函数完成后，返回的Promise才会执行
+
+### Module
+由于使用单一状态树，应用的所有状态会集中到一个比较大的对象。当应用变得非常复杂时，store对象就有可能变得相当臃肿
+ 为了解决以上问题，Vuex允许我们将store分割成模块。每个模块拥有自己的state、mutation、action、getter、甚至是嵌套子模块——从上之下进行同样方式的分割：
+ ```js
+ const moduleA = {
+     state: { ... },
+     mutations: { ... },
+     ations: { ... },
+     gettters: {...}
+ }
+
+const moduleB = {
+    state: {...},
+    mutations: {...},
+    actions: {...}
+}
+
+const store = new Vuex.Store({
+    modules: {
+        a: moduleA,
+        b: moduleB
+    }
+})
+
+store.state.a // -> moduleA的状态
+store.state.b // -> moduleB的状态
+```
+模块的局部状态
+对于模块内部的mutation和getter，接收的第一个参数是模块的局部状态对象
+```js
+const moduleA  = {
+    state: {count: 0},
+    mutations: {
+        increment (state) {
+            state.count++
+        }
+    },
+    getters:{
+        doubleCount (state) {
+            return stata.count * 2
+        }
+    }
+}
+```
+同样，对于模块内部的action，局部状态通过context.state暴露出来，根节点状态则为context.rootState:
+```js
+const moduleA = {
+    actions: {
+        incrementIfOddOnRootSum ({state,commit,rootState}) {
+            if ((state.count + rootState.count) % 2 === 1) {
+                commit('increment')
+            }
+        }
+    }
+}
+//对于模块内部的getter，根节点状态会作为第三个参数暴露出来
+const moduleA = {
+    getters: {
+        sumWithRootCount (state, gettres, rootState) {
+            return state.count = rootState.count
+        }
+    }
+}
+```
+### 命名空间
+默认情况下，模块内部的action、mutation和getter是注册在全局命名空间的——这样使得多个模块能够对同一mutation或action做出相应。
+如果希望你的模块具有更高的封装性和复用性，你可以通过添加namespaced: true的方式使其成为带命名空间的模块。当模块被注册后，它的所有getter、action及mutation都会自动根据模块注册的路径调整命名：
+```js
+const store = new Vuex.Store({
+    modules: {
+        account: {
+            namespaced: true,
+            state: {...}
+            getters: {
+                isAdmin () {...}
+            },
+            actions: {
+                login () {...}
+            },
+            mutations: {
+                login () {...}
+            },
+            //嵌套模块
+            modules: {
+                myPage: {
+                    state:{...},
+                    getters: {
+                        profile () {...}
+                    }
+                },
+                posts: {
+                    namepaced: true,
+                    state: {...}
+                    getters: {
+                        popular () {...}
+                    }
+                }
+            }
+        }
+    }
+})
+```
+启用了命名空间的 getter 和 action 会收到局部化的 getter，dispatch 和 commit。换言之，你在使用模块内容（module assets）时不需要在同一模块内额外添加空间名前缀。更改 namespaced 属性后不需要修改模块内的代码。
