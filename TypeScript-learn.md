@@ -431,3 +431,17 @@ class Clock implements ClockInterface {
     }
     constructor
 }
+```
+### 函数
+#### 函数类型
+```ts
+function add(x: number,y: number): number {
+    return x + y;
+}
+let myAdd = function(x: number,y: number): number { return x + y;};
+```
+
+#### 书写完整函数类型
+```ts
+let myAdd: (x: number, y: number) => number = function(x: number, y:number): number { return x + y};
+
