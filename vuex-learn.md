@@ -207,3 +207,178 @@ mutations: {
 state.obj = {...state.obj, newProp:123}
 ```
 #### 使用常量代替mutation事件类型
+使用常量替代mutation事件类型在各种flux实现中是很常见的模式。这样可以使linter之类的工具发挥作用，同时把这些常量放在单独的文件中可以让你的代码合作者对整个app包含的mutation一目了然：
+```js
+//mutation-type.js
+export const SOME_MUTATION = "SOME_MUTATION"
+```
+```js
+//store.js
+import Vuex from 'vuex'
+import {SOME_MUTATION} from './mutation-types'
+
+const store = new Vuex.Store({
+    state: {...},
+    mutation: {
+        [SOME_MUTATION](state) {
+
+        }
+    }
+})
+```
+用不用常量取决于你——在需要多人协作的大型项目中，这会很有帮助。但如果你不喜欢，你完全可以不这样做。
+#### Mutation必须是同步函数
+一条重要的原则就是要记住mutation必须是同步函数。
+```js
+mutations: {
+    someMutation(state) {
+        api.callAsyncMethod(() => {
+            state.count++
+        })
+    }
+}
+```
+现在想像，我们正在debug一个app并且观察devtool中的mutation日志。每一条mutation被记录，devtool都需要被捕捉前一状态和后一状态的快照。然而，在上面的例子中mutation中的异步函数中的回调让这不可能完成：因为当mutation触发的时候，回调函数还没有被调用，devtool不知道什么时候回调函数实际上被调用——实质上任何在回调函数中进行的状态的改变都是不可追踪的。
+### 在组件中提交Mutation
+可以在组建中使用this.$store.commit("xxx")提交mutation，或者使用mapMutation辅助函数将组件中的methods映射为store.commit调用（需要再根节点注入store）。
+```js
+import {mapMutation} from 'Vuex'
+
+export default {
+    methods: {
+        ...mapMutation([
+            'increment',
+            'incrementBy'
+        ]),
+        ...mapMutation([
+            add: 'increment'
+        ])
+    }
+}
+```
+#### 下一步：Action
+在mutation中混合异步调用会导致你的程序很难调试。例如，当你调用了两个包含异步回调的mutation来改变状态，你怎么知道什么时候回调和哪个先回调呢？这就是为什么我们要区分这个两个概念。在Vuex中，mutation都是同步事务：
+
+Action类似于mutation，不同于：
+* Action提交的是mutation，而不是直接变更状态
+* Action可以包含任意异步操作
+让我们来注册一个简单的action：
+```js
+const store = new Vuex.Store({
+    state: {
+        count: 0
+    },
+    mutations: {
+        increment (state) {
+            state.count++
+        }
+    },
+    actions: {
+        increment (context) {
+            context.commit('increment');
+
+        }
+    }
+})
+```
+Action函数接受一个与store实例具有相同方法和属性context对象(不是store实例本身)，因此你可以调用context.commit提交一个mutation，或者通过context.state和context.getters来获取state和getters。
+```js
+//使用参数结构来简化代码
+actions: {
+    increment ({commit}) {
+        commit('increment')
+    }
+}
+```
+#### 分发action
+action通过store.dispatch方法触发：
+```js
+store.dispatch('increment')
+```
+乍一眼看上去感觉多此一举，我们直接分发mutation岂不更方便？实际上并非如此，还记得mutation必须同步执行这个限制么？Action就不受拘束！我们可以在action内部执行异步操作:
+```js
+actions: {
+    incrementAsync ({commit}) {
+        setTimeout(() => {
+            commit('commit')
+        }, 1000)
+    }
+}
+//以载荷形式分发
+store.dispatch('incrementAsync',{
+    amount: 10
+})
+//以对象形式分发
+store.dispatch({
+    type: 'incrementAsync',
+    amount: 10
+})
+```
+购物车实例
+```js
+actions: {
+    checkout({commit,state},products) {
+        const savedCartItems = [...state.cart.added]
+        commit(types.CHECKOUT_REQUEST)
+        shop.buyProducts(
+            products,
+            //成功回调
+            () => commit(types.CHECKOUT_SUCCESS),
+            () => commit(types.CHECKOUT_FAILURE,savedCartItems)
+        )
+    }
+}
+```
+#### 在组件中分发Action
+你在组件中使用this.$store.dispatch('xxx')分发action,或者使用mapActions辅助函数将组件的methods映射为store.dispatch调用(需要先在根节点注入store)
+```js
+import {mapActions} from 'vuex'
+
+export default {
+    methods: {
+        ...mapActions([
+            'increment',
+            'incrementBy'
+        ]),
+        ...mapActions([
+            add: 'increment'
+        ])
+    }
+}
+```
+#### 组合action
+action通常是异步的，那么如何知道action什么时候结束呢？更重要的是，我们如何才能组合多个action，以处理更加复杂的异步流程？
+首先，你需要明白store.dispatch可以处理被触发的action的处理函数的promise，并且store.dispatch仍旧返回promise：
+```js
+actions: {
+    acctionA ({commit}) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                commit('someMutation');
+                resolve()
+            }, 1000)
+        })
+    }
+}
+store.dispatch('actionA').then(() => {
+
+})
+actions: {
+    actionB ({dispatch, commit}) {
+        return dispatch('actionA').then(() => {
+            commit('someOtherMutation')
+        })
+    }
+}
+//假设getData()和getOtherData()返回的是Promise
+actions: {
+    async actionA ({commit}) {
+        commit('gotData', await getData())
+    },
+    async actionB ({dispatch, commit}) {
+        await dispatch('actionA')
+        commit('gotOtherData', await getOtherData())
+    }
+}
+```
+一个store.dispatch在不同模块中可以触发多个action函数。在这种情况下，只有当所有触发函数完成后，返回的Promise才会执行
