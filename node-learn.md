@@ -91,5 +91,5 @@ export.increment = function (val) {
 * 父目录的父目录下的node_module目录
 * 沿路径向上逐级递归，直到根目录下的node_module目录
 
-#####  文件扩展名分析
+##### 文件扩展名分析
 require()在分析标识符的过程中，会出现标识符中不包含文件扩展名的情况。CommonJS模块规范也允许在标识符不包含文件扩展名，这种情况下，Node会按.js、.json、.node的次序补足扩展名，依次尝试
