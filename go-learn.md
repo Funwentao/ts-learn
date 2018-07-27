@@ -50,6 +50,61 @@ strings.Fields(s)
 strings.Split(s, sep)
 //拼接字符串
 strings.Join(sl []string, sep string) string
+//从字符串中读取内容
+```
+### 时间和日期
+```go
+fmt.Printf("%02d.%02d.%4d\n", t.Day(), t.Month(), t.Year()) //27.6.2018
+```
+
+### switch结构
+可以同时测试多个可能符合条件的值，使用逗号分割它们，例如：case val1, val2, val3
+
+一旦成功地匹配某个分支，在执行完相应代码后就会退出整个switch代码块，也就是说您不需要特别使用break语句来表示结束。因此程序也不会自动地去执行下一个分支的代码。如果在执行完每个分支的代码后，还希望继续执行后续分支的代码，可以使用`fallthrough`关键字来达到目的
+```go
+switch i {
+    case 0: //空分支，只有当i == 0时才会进入分支
+    case 1: f() //当i == 0时函数不会被调用  
+}
+switch i {
+    case 0: fallthrough
+    case 1 f() //当i == 0时函数会被调用  
+}
+```
+# 函数
+命名的返回值
+```go
+package main
+
+import "fmt"
+
+var num int = 10
+var numx2, numx3 int
+func main() {
+    numx2, numx3 = getX2AndX3(num)
+    PrintValues()
+    numx2, numx3 = getX2AndX3_2(num)
+    PrintValues()
+}
+
+func PrintValues() {
+    fmt.Printf("num = %d, 2x num = %d, 3x num = %d\n", num, num2, num3)
+}
+
+func getXAndX3(input int) (int, int) {
+    return 2 * input, 3 * input
+}
+func getXAndX3_2(input int) (x2 int, x3 int) {
+    x2 = 2 * input
+    x3 = 3 * input
+    return
+}
+```
+### 传参变长参数
+
+
+
+
 
 
 
