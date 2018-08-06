@@ -101,10 +101,3 @@ func getXAndX3_2(input int) (x2 int, x3 int) {
 }
 ```
 ### 传参变长参数
-
-
-
-
-
-
-
