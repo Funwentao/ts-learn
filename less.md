@@ -17,6 +17,7 @@
                 fallback: 'style-loader', 
                 use: ['css-loader', 'less-loader']
             })
+}
 ```
 * 第三步，然后在使用的时候在style标签里加上lang=”less”里面就可以写less的代码了，或者:
 ```css
