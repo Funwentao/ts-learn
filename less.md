@@ -5,10 +5,18 @@
 ```
 * 第二步，在webpack加入配置
 ```js
+// {
+//     test: /\.less$\/,
+//     loader: "style-loader!css-loader!less-loader"
+// }
+
 {
-    test: /\.less$\/,
-    loader: "style-loader!css-loader!less-loader"
-}
+            test: /\.less$/,
+            //loader: "style-loader!css-loader!less-loader",
+            loader: ExtractTextPlugin.extract({
+                fallback: 'style-loader', 
+                use: ['css-loader', 'less-loader']
+            })
 ```
 * 第三步，然后在使用的时候在style标签里加上lang=”less”里面就可以写less的代码了，或者:
 ```css
